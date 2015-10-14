@@ -69,6 +69,7 @@ for (my $x=0; $x< $num; $x++) {
 
   $perl_scalar = $json->decode( $json_text );
   download($perl_scalar->{'data'}->[0]->{'url'}, $perl_scalar->{'data'}->[0]->{'file_name'});  
+  die unless verify_download($perl_scalar->{'data'}->[0]->{'file_name'}, $perl_scalar->{'data'}->[0]->{'file_md5'});
 
   print $oh $perl_scalar->{'data'}->[0]->{'id'}, "\t", $perl_scalar->{'data'}->[0]->{'file_name'}, "\n"; 
 }
@@ -86,6 +87,17 @@ sub download {
   return $ret
 
 }
+
+sub verify_download {
+  my $filename = shift or die "must provide filename";
+  my $expected_md5 = shift or die "must prvide expected md5";
+
+  my ($observed_md5, $filename)  =  split /\s+/, `md5sum $filename`; 
+  print STDERR "expected: $expected_md5\nobserved: $observed_md5\n";
+  return 1 if $observed_md5 eq $expected_md5;
+  return 0 if $observed_md5 ne $expected_md5;
+}
+  
 # api query functions
 # this sub gets the metadata data structure
 sub download_metadata_from_mgrast {
@@ -97,6 +109,7 @@ sub download_metadata_from_mgrast {
   $cmd   .= '\'';
   my $ret = `$cmd`;
   if ($?) {die "$?\ncould not execute command $cmd";}
+
   return $ret
 }
 
