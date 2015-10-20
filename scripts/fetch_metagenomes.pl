@@ -2,8 +2,15 @@ use strict;
 use Getopt::Long; 
 use JSON;
 use Pod::Usage;
+use Log::Message::Simple qw[:STD :CARP];
+
+### redirect log output
+local $Log::Message::Simple::MSG_FH     = \*STDERR;
+local $Log::Message::Simple::ERROR_FH   = \*STDERR;
+local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
 
 my $help = 0;
+my $verbose = 1;
 my ($in, $out, $num);
 
 GetOptions(
@@ -62,7 +69,7 @@ for (my $x=0; $x< $num; $x++) {
   # log_download($json_text);
 
   if (exists $skip{ $perl_scalar->{'data'}->[0]->{'id'} }) {
-    print STDERR "skipping ", $perl_scalar->{'data'}->[0]->{'id'}, "\n";
+    msg( "skipping ", $perl_scalar->{'data'}->[0]->{'id'} , $verbose);
     $x--;
     next;
   }
@@ -93,7 +100,8 @@ sub verify_download {
   my $expected_md5 = shift or die "must prvide expected md5";
 
   my ($observed_md5, $filename)  =  split /\s+/, `md5sum $filename`; 
-  print STDERR "expected: $expected_md5\nobserved: $observed_md5\n";
+  msg ( "expected: $expected_md5", $verbose);
+  msg ( "observed: $observed_md5", $verbose);
   return 1 if $observed_md5 eq $expected_md5;
   return 0 if $observed_md5 ne $expected_md5;
 }
