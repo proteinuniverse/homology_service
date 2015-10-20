@@ -2,8 +2,15 @@ use strict;
 use Getopt::Long; 
 use JSON;
 use Pod::Usage;
+use Log::Message::Simple qw[:STD :CARP];
+
+### redirect log output
+local $Log::Message::Simple::MSG_FH     = \*STDERR;
+local $Log::Message::Simple::ERROR_FH   = \*STDERR;
+local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
 
 my $help = 0;
+my $verbose = 0;
 my ($in, $out);
 
 GetOptions(
@@ -13,8 +20,11 @@ GetOptions(
 	'help'	=> \$help,
 	'input=s'  => \$in,
 	'output=s' => \$out,
+	'v'        => \$vervbose,
+	'verbose'  => \$verbose,
 
 ) or pod2usage(0);
+
 
 
 pod2usage(-exitstatus => 0,
