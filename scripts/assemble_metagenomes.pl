@@ -49,30 +49,25 @@ else {
 # main logic
 
 our $cfg = {};
-#if (defined $ENV{KB_DEPLOYMENT_CONFIG} && -e $ENV{KB_DEPLOYMENT_CONFIG}) {
-#    $cfg = new Config::Simple($ENV{KB_DEPLOYMENT_CONFIG}) or
-#	die "can not create Config object";
-#    print "using $ENV{KB_DEPLOYMENT_CONFIG} for configs\n";
-#}
-#else {
-#    $cfg = new Config::Simple(syntax=>'ini');
-#    $cfg->param('homology_service.megahit_cmd','megahit.tt');
-#}
-
+# TODO: use Config::Simple to specify which .tt file to use
+# and then modify to support paired end or interleaved reads.
+# Though, this is not needed for the specific task at hand.
 
 
 if ($ih) { 
   while(<$ih>) {
     my($metagenome_id, $filename) = split /\s+/;
     die "$filename not readable" unless (-e $filename and -r $filename);
-    my $vars = {se_reads => "my.reads",
+    my $vars = {se_reads => $filename,
 		base     => "base", 
 	       };
     my $tt = Template->new();
-    my $cmd = '';
-    $tt->process("megahit.tt", $vars, \$cmd)  or die $tt->error(), "\n";
+    my $cmd;
+    $tt->process("megahit-se.tt", $vars, \$cmd)  or die $tt->error(), "\n";
     print STDERR "cmd: $cmd", "\n";
-    
+    !system $cmd or die "could not execute $cmd\n$!";
+    print $oh $metagenome_id, "\t", $vars->{base} . '/final.contigs.fa';
+    print STDERR "cmd: finished\n";
   }
 }
 else {
@@ -92,11 +87,11 @@ assemble_metagenome.pl
 
 =head1	SYNOPSIS
 
-assemble_metagenome.pl <options>
+assemble_metagenome.pl -i file -o file 
 
 =head1	DESCRIPTION
 
-The assemble_metagenome.pl command ...
+The assemble_metagenome.pl script assembles a metagenome using an assembler and parameters defined in a template file.
 
 =head1	LIMITATION
 
@@ -112,7 +107,7 @@ Basic usage documentation
 
 =item   -i, --input
 
-The input file, default is STDIN. This is required. It contains the list of metagenomes to assemble.
+The input file, default is STDIN. This is required. It is a tab delimited input, with one metagenome id and the read file(s). If multiple read files are to be processed, they must be comma separated with no whitespace. 
 
 =item   -o, --output
 
