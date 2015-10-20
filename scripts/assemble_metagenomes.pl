@@ -3,6 +3,8 @@ use Getopt::Long;
 use JSON;
 use Pod::Usage;
 
+use Template;
+
 my $help = 0;
 my ($in, $out);
 
@@ -43,9 +45,39 @@ else {
 }
 
 
+
 # main logic
 
+our $cfg = {};
+#if (defined $ENV{KB_DEPLOYMENT_CONFIG} && -e $ENV{KB_DEPLOYMENT_CONFIG}) {
+#    $cfg = new Config::Simple($ENV{KB_DEPLOYMENT_CONFIG}) or
+#	die "can not create Config object";
+#    print "using $ENV{KB_DEPLOYMENT_CONFIG} for configs\n";
+#}
+#else {
+#    $cfg = new Config::Simple(syntax=>'ini');
+#    $cfg->param('homology_service.megahit_cmd','megahit.tt');
+#}
 
+
+
+if ($ih) { 
+  while(<$ih>) {
+    my($metagenome_id, $filename) = split /\s+/;
+    die "$filename not readable" unless (-e $filename and -r $filename);
+    my $vars = {se_reads => "my.reads",
+		base     => "base", 
+	       };
+    my $tt = Template->new();
+    my $cmd = '';
+    $tt->process("megahit.tt", $vars, \$cmd)  or die $tt->error(), "\n";
+    print STDERR "cmd: $cmd", "\n";
+    
+  }
+}
+else {
+  die "no input found, input is required";
+}
 
 
 
@@ -93,6 +125,8 @@ The output file, default is STDOUT. This is the metagenome id and the assembly f
 Thomas Brettin
 
 =cut
+
+
 
 1;
 
