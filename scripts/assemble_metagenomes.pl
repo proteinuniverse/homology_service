@@ -4,6 +4,7 @@ use JSON;
 use Pod::Usage;
 
 use Template;
+use Config::Simple;
 
 my $help = 0;
 my ($in, $out);
@@ -49,25 +50,37 @@ else {
 # main logic
 
 our $cfg = {};
-# TODO: use Config::Simple to specify which .tt file to use
-# and then modify to support paired end or interleaved reads.
-# Though, this is not needed for the specific task at hand.
+if (defined $ENV{KB_DEPLOYMENT_CONFIG} && -e $ENV{KB_DEPLOYMENT_CONFIG}) {
+    $cfg = new Config::Simple($ENV{KB_DEPLOYMENT_CONFIG}) or
+	die "can not create Config object";
+    print "using $ENV{KB_DEPLOYMENT_CONFIG} for configs\n";
+}
+else {
+    $cfg = new Config::Simple(syntax=>'ini');
+    $cfg->param('homology_service.assembly_tt','/homes/brettin/local/dev_container/modules/homology_service/templates/megahit-se.tt');
+}
 
 
 if ($ih) { 
   while(<$ih>) {
+    my $cmd;
     my($metagenome_id, $filename) = split /\s+/;
     die "$filename not readable" unless (-e $filename and -r $filename);
-    my $vars = {se_reads => $filename,
-		base     => "base", 
-	       };
-    my $tt = Template->new();
-    my $cmd;
-    $tt->process("megahit-se.tt", $vars, \$cmd)  or die $tt->error(), "\n";
+
+    my $vars = { se_reads => $filename, base => $metagenome_id };
+    my $tt = Template->new( {'ABSOLUTE' => 1} );
+
+    $tt->process($cfg->param('homology_service.assembly_tt'), $vars, \$cmd)
+      or die $tt->error(), "\n";
+
     print STDERR "cmd: $cmd", "\n";
+
     !system $cmd or die "could not execute $cmd\n$!";
+
     print $oh $metagenome_id, "\t", $vars->{base} . '/final.contigs.fa';
+
     print STDERR "cmd: finished\n";
+
   }
 }
 else {
