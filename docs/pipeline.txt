@@ -1,0 +1,36 @@
+source = none
+filter = fetch_metagenome
+filter parameter = records file of records to skip
+sink = tab delimited record : metagenome_id [tab] read_file_name
+
+source = tab delimited record : metagenome_id [tab] read_file_name
+filter = assemble_metagenome
+filter parameter = assembler template
+filter parameter = records file of records to skip
+sink = tab delimited records : metagenome_id [tab] assembly_file_name
+
+source = tab delimited records : metagenome_id [tab] assembly_file_name
+filter = filter_contigs
+filter parameter = coverage
+filter parameter = length
+filter paramter = records file of records to skip
+sink = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
+
+source = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
+filter = call_genes
+filter paramter = gene caller template
+sink = tab delimited records : metagenome_id [tab] gene_predictions_file_name
+
+source = tab delimited records : metagenome_id [tab] gene_predictions_file_name
+filter = flex_md5
+sink = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+
+
+source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+filter = find_location
+sink = tab delimited records : metagenome_id [tab] contig_id [tab] flexmd5 [tab] start [tab] stop [tab]
+
+
+source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+filter assign_function
+sink = tab delimited records : flexmd5 [tab] function
