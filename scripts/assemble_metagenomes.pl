@@ -7,7 +7,8 @@ use Template;
 use Config::Simple;
 
 my $help = 0;
-my ($in, $out);
+my ($in, $out, %skip, $skip_file);
+our $cfg;
 
 GetOptions(
 	'h'	=> \$help,
@@ -16,18 +17,15 @@ GetOptions(
 	'help'	=> \$help,
 	'input=s'  => \$in,
 	'output=s' => \$out,
-
+	's=s'	=> \$skip_file,
+	'skip=s'   => \$skip_file,
 ) or pod2usage(0);
-
 
 pod2usage(-exitstatus => 0,
           -output => \*STDOUT,
           -verbose => 2,
           -noperldoc => 1,
          ) if $help;
-
-
-# do a little validation on the parameters
 
 
 my ($ih, $oh);
@@ -45,11 +43,17 @@ else {
     $oh = \*STDOUT;
 }
 
-
+if ($skip_file) { 
+  open SKIP, $skip_file or die "could not open skip file $skip_file.";
+  while (<SKIP>) {
+    my ($id) = split /\s+/;
+    $skip{$id}++;
+  }
+  close SKIP;
+}
 
 # main logic
 
-our $cfg = {};
 if (defined $ENV{KB_DEPLOYMENT_CONFIG} && -e $ENV{KB_DEPLOYMENT_CONFIG}) {
     $cfg = new Config::Simple($ENV{KB_DEPLOYMENT_CONFIG}) or
 	die "can not create Config object";
@@ -65,6 +69,7 @@ if ($ih) {
   while(<$ih>) {
     my $cmd;
     my($metagenome_id, $filename) = split /\s+/;
+    if ( $skip{$metagenome_id} >= 1) { print "skipping $metagenome_id\n"; next; }
     die "$filename not readable" unless (-e $filename and -r $filename);
 
     my $vars = { se_reads => $filename, base => $metagenome_id };
@@ -125,6 +130,10 @@ The input file, default is STDIN. This is required. It is a tab delimited input,
 =item   -o, --output
 
 The output file, default is STDOUT. This is the metagenome id and the assembly file in tab delimited format.
+
+=item	-s, --skip
+
+A file that contains a list of metagenome ids to skip. That is, don't assemble these metagenomes. The file can be tab delimited with the id in the first column making the output of this command a suitable file for the -skip option in a future run.
 
 =back
 
