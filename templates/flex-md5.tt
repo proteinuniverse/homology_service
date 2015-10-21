@@ -1,0 +1,4 @@
+[brettin@celero Project_LEONE]$ more cmd.flex.md5 
+#!/bin/bash
+
+/home/brettin/protein_universe/pipeline/scripts/flex.md5.pl $1 > $1.flex.md5
