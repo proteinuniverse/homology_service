@@ -20,7 +20,7 @@ GetOptions(
 	'help'	=> \$help,
 	'input=s'  => \$in,
 	'output=s' => \$out,
-	'v'        => \$vervbose,
+	'v'        => \$verbose,
 	'verbose'  => \$verbose,
 
 ) or pod2usage(0);
