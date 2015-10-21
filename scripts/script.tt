@@ -25,8 +25,6 @@ GetOptions(
 
 ) or pod2usage(0);
 
-
-
 pod2usage(-exitstatus => 0,
           -output => \*STDOUT,
           -verbose => 2,
@@ -34,9 +32,7 @@ pod2usage(-exitstatus => 0,
          ) if $help;
 
 
-# do a little validation on the parameters
-
-
+### set up i/o handles
 my ($ih, $oh);
 
 if ($in) {
@@ -53,7 +49,7 @@ else {
 }
 
 
-# main logic
+### main logic
 
 
 
@@ -91,6 +87,10 @@ The input file, default is STDIN
 =item   -o, --output
 
 The output file, default is STDOUT
+
+=item	-v, --verbose
+
+Sets logging to verbose. By default, logging goes to STDERR.
 
 =back
 
