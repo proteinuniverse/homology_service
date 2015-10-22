@@ -72,7 +72,7 @@ if ($ih) {
     if ( $skip{$metagenome_id} >= 1) { print "skipping $metagenome_id\n"; next; }
     die "$filename not readable" unless (-e $filename and -r $filename);
 
-    my $vars = { se_reads => $filename, base => $metagenome_id };
+    my $vars = { se_reads => $filename, out_dir => $metagenome_id };
     my $tt = Template->new( {'ABSOLUTE' => 1} );
 
     $tt->process($cfg->param('homology_service.assembly_tt'), $vars, \$cmd)
@@ -82,7 +82,7 @@ if ($ih) {
 
     !system $cmd or die "could not execute $cmd\n$!";
 
-    print $oh $metagenome_id, "\t", $vars->{base} . '/final.contigs.fa';
+    print $oh $metagenome_id, "\t", $vars->{out_dir} . '/final.contigs.fa\n';
 
     print STDERR "cmd: finished\n";
 
