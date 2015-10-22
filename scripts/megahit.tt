@@ -1,6 +1,0 @@
-megahit -m 32000000000 --cpu-only -l 300 -o megahit-[% base %] \
-   --read [% se_reads %] \
-   --k-min 21 --k-max 99 --k-step 10 \
-   --min-count 2 \
-   --num-cpu-threads 8 \
-   | tee Log
