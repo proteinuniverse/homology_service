@@ -1,4 +1,4 @@
-megahit -m 32000000000 --cpu-only -l 300 -o megahit-[% base %] \
+megahit -m 32000000000 --cpu-only -l 300 -o megahit-[% out_dir %] \
    -1 [% for_reads %] -2 [% rev_reads %] \
    --k-min 21 --k-max 99 --k-step 10 \
    --min-count 2 \
