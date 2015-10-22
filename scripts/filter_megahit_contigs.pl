@@ -2,6 +2,7 @@ use strict;
 use Getopt::Long; 
 use JSON;
 use Pod::Usage;
+use File::Basename;
 
 my $help = 0;
 my ($in, $out, $coverage, $length, $skip);
@@ -52,13 +53,23 @@ if ($skip) {
   close SKIP;
 }
 
+my @suffixlist = qw(.fa .fna .fasta);
+
 # main logic
 while(<$ih>){
   my ($metagenome_id, $contigs_file) = split /\s+/;
   if ( $skip_ids{$metagenome_id} >= 1) { print "skipping $metagenome_id\n"; next; }
 
-  open CONTIGS, $contigs_file or die "can not open contigs file";
-  while(<CONTIGS>) {  
+  open CONTIGS, $contigs_file or die "can not open contigs file: $contigs_file";
+
+  my($name,$path,$suffix) = fileparse($contigs_file,@suffixlist);
+  my $filtered_file_name = $path . $name;
+  $filtered_file_name .= '.' . $coverage . 'x' if $coverage;
+  $filtered_file_name .= '.' . $length . 'bp' if $length;
+  $filtered_file_name .= $suffix;
+  open FILTERED, ">$filtered_file_name "or die "can not open filtered file";
+
+  while(<CONTIGS>) { 
     my $cov = 0;
     my $id;
     my $len = 0;
@@ -72,7 +83,6 @@ while(<$ih>){
       $cov = $1 if /multi=([\d\.]+)/;
       $cov = $1 if /multi_([\d\.]+)/;
       die "could not parse coverage" unless $cov;
-
       # look at length
       $len = $1 if /len=(\d+)/;
       $len = $1 if /length_(\d+)/;
@@ -88,10 +98,12 @@ while(<$ih>){
 
     if ($PRINT == 1) {
       print STDERR "problem" unless $_;
-      print $oh $_;
+      print FILTERED $_;
       print STDERR "$id\t$len\t$cov\n" if />/;
     }
   } # end while contigs
+  close FILTERED;
+  print $oh "$metagenome_id\t$filtered_file_name\n";
 } # end while input handle
 
 
