@@ -1,3 +1,0 @@
-kb_script=
-kb_author=
-tpage --define kb_script=fetch_metagenome --define kb_author="Thomas Brettin" script.tt  > fetch_metagenomes
