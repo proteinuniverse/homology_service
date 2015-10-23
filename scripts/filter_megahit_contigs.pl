@@ -133,11 +133,11 @@ Basic usage documentation
 
 =item   -i, --input
 
-The input file, default is STDIN
+The input file, default is STDIN. It should be a tab delimted set of metagenome_id [tab] contig_file_name records.
 
 =item   -o, --output
 
-The output file, default is STDOUT
+The output file, default is STDOUT. This is a tab delimited set of metagenome_id [tab] filtered_contig_file_name records.
 
 =item	-c, --coverage
 
