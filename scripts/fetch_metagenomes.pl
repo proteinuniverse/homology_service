@@ -11,7 +11,7 @@ local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
 
 my $help = 0;
 my $verbose = 1;
-my ($in, $out, $num);
+my ($in, $out, $num, $offset);
 
 GetOptions(
 	'h'	=> \$help,
@@ -22,6 +22,8 @@ GetOptions(
 	'output=s' => \$out,
 	'n=i'    => \$num,
 	'number' => \$num,
+	's=i'    => \$offset,
+	'start=i'  => \$offset,
 
 ) or pod2usage(0);
 
@@ -58,8 +60,8 @@ use JSON;
 
 if ( $ih ) {while(<$ih>) {chomp; $skip{$_}++;}}
 
-for (my $x=0; $x< $num; $x++) {
-  my $json_text = download_metadata_from_mgrast(1, $x);
+for (my $x=0+$offset; $x< $num+$offset; $x++) {
+  my $json_text = download_metadata_from_mgrast(1, $x+$offset);
   # log_metadata($json_text);
 
   my $json = JSON->new->allow_nonref;
@@ -206,6 +208,10 @@ The input file, default is STDIN. This is optional. If it is provided, it will c
 =item   -o, --output
 
 The output file, default is STDOUT. The output contains the metagenome id and the name of the file downloaded in tab delimited format.
+
+=item	-s, --start
+
+The start position in MGRAST to start downloading from. Also known as the offset fromt the first metagenome record in MGRAST.
 
 =back
 
