@@ -2,9 +2,17 @@ use strict;
 use Getopt::Long; 
 use JSON;
 use Pod::Usage;
-
+use File::Basename;
 use Template;
 use Config::Simple;
+use Log::Message::Simple qw[:STD :CARP];
+
+### redirect log output
+my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
+open LOG, ">>$scriptname.log" or die "cannot open log file";
+local $Log::Message::Simple::MSG_FH     = \*LOG;
+local $Log::Message::Simple::ERROR_FH   = \*LOG;
+local $Log::Message::Simple::DEBUG_FH   = \*LOG;
 
 my $help = 0;
 my ($in, $out, %skip, $skip_file);
@@ -78,13 +86,13 @@ if ($ih) {
     $tt->process($cfg->param('homology_service.assembly_tt'), $vars, \$cmd)
       or die $tt->error(), "\n";
 
-    print STDERR "cmd: $cmd", "\n";
+    msg( "cmd: $cmd" );
 
     !system $cmd or die "could not execute $cmd\n$!";
 
-    print $oh $metagenome_id, "\t", $vars->{out_dir} . '/final.contigs.fa\n';
+    print $oh $metagenome_id, "\t", $vars->{out_dir} . "/final.contigs.fa\n";
 
-    print STDERR "cmd: finished\n";
+    msg( "cmd: finished" );
 
   }
 }
