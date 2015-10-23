@@ -1,7 +1,8 @@
-megahit -m 32000000000 --cpu-only -l 300 -o [% out_dir %] \
+bash -c \
+"megahit -m 32000000000 --cpu-only -l 300 -o [% out_dir %] \
    --read [% se_reads %] \
    --k-min 21 --k-max 99 --k-step 10 \
    --min-count 2 \
    --num-cpu-threads 8 \
    --continue \
-   | tee Log
+   > $$.log 2>&1"
