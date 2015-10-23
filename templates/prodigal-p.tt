@@ -1,3 +1,2 @@
 # call partials
-# /home/brettin/prodigal.v2_50/prodigal -i $1 -o $1.coords.gff -a $1.faa -f gff 
--p meta
+# /home/brettin/prodigal.v2_50/prodigal -i $1 -o $1.coords.gff -a $1.faa -f gff -p meta
