@@ -6,6 +6,7 @@ use Log::Message::Simple qw[:STD :CARP];
 
 use Template;
 use Config::Simple;
+use File::Basename;
 
 ### redirect log output
 local $Log::Message::Simple::MSG_FH     = \*STDERR;
@@ -73,7 +74,7 @@ if (defined $ENV{KB_DEPLOYMENT_CONFIG} && -e $ENV{KB_DEPLOYMENT_CONFIG}) {
 }
 else {
     $cfg = new Config::Simple(syntax=>'ini');
-    $cfg->param('homology_service.assembly_tt','/homes/brettin/local/dev_container/modules/homology_service/templates/prodigal-np.tt');
+    $cfg->param('homology_service.call_genes_tt','/homes/brettin/local/dev_container/modules/homology_service/templates/prodigal-np.tt');
 }
 
 
@@ -82,19 +83,24 @@ if ($ih) {
     my $cmd;
     my($metagenome_id, $filename) = split /\s+/;
     if ( $skip_ids{$metagenome_id} >= 1) { print "skipping $metagenome_id\n"; next; }
+    if ( -s $filename == 0 ) { print "skipping $filename with size 0\n"; next; }
     die "$filename not readable" unless (-e $filename and -r $filename);
+    my @suffixlist = qw (.fa .fna .fasta);
+    my ($name,$path,$suffix) = fileparse($filename,@suffixlist);
 
     my $tt = Template->new( {'ABSOLUTE' => 1} );
+
     # specific
-    my $vars = { infile => $filename };
-    $tt->process($cfg->param('homology_service.assembly_tt'), $vars, \$cmd)
+    my $genes_filename = $path . $name . ".gene_calls.faa";
+    my $vars = { infile => $filename, outfile => $genes_filename };
+    $tt->process($cfg->param('homology_service.call_genes_tt'), $vars, \$cmd)
       or die $tt->error(), "\n";
 
     print STDERR "cmd: $cmd", "\n";
     !system $cmd or die "could not execute $cmd\n$!";
 
     # specific
-    print $oh $metagenome_id, "\t", $vars->{base} . '/final.contigs.fa';
+    print $oh $metagenome_id, "\t", $genes_filename, "\n";
     print STDERR "cmd: finished\n";
   }
 } else {
@@ -127,11 +133,11 @@ Basic usage documentation
 
 =item   -i, --input
 
-The input file, default is STDIN
+The input file, default is STDIN. Expects a tab delimited set of metagenome_id [tab] filtered_contigs_filename records.
 
 =item   -o, --output
 
-The output file, default is STDOUT
+The output file, default is STDOUT. This is a tab delimited set of metagenome_id [tab] gene_call_filename records.
 
 =item	-v, --verbose
 
