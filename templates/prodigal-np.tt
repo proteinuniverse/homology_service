@@ -1,1 +1,1 @@
-/home/brettin/prodigal.v2_50/prodigal -i [% infile %] -o [% infile %].coords.gff -a [% infile %].faa -f gff -p meta -c
+prodigal -i [% infile %] -o [% outfile %].coords.gff -a [% outfile %] -f gff -p meta -c
