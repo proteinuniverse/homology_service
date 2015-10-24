@@ -5,6 +5,8 @@ use Pod::Usage;
 use Log::Message::Simple qw[:STD :CARP];
 
 ### redirect log output
+my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
+open STDERR, ">>$scriptname.log" or die "cannot open log file";
 local $Log::Message::Simple::MSG_FH     = \*STDERR;
 local $Log::Message::Simple::ERROR_FH   = \*STDERR;
 local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
@@ -24,7 +26,8 @@ GetOptions(
 	'number' => \$num,
 	's=i'    => \$offset,
 	'start=i'  => \$offset,
-
+        'v'        => \$verbose,
+        'verbose'  => \$verbose,
 ) or pod2usage(0);
 
 
@@ -81,6 +84,8 @@ for (my $x=0+$offset; $x< $num+$offset; $x++) {
   die unless verify_download($perl_scalar->{'data'}->[0]->{'file_name'}, $perl_scalar->{'data'}->[0]->{'file_md5'});
 
   print $oh $perl_scalar->{'data'}->[0]->{'id'}, "\t", $perl_scalar->{'data'}->[0]->{'file_name'}, "\n"; 
+
+  msg( "done downloading " . $perl_scalar->{'data'}->[0]->{'file_name'}, $verbose);
 }
 
 # download functions
@@ -212,6 +217,10 @@ The output file, default is STDOUT. The output contains the metagenome id and th
 =item	-s, --start
 
 The start position in MGRAST to start downloading from. Also known as the offset fromt the first metagenome record in MGRAST.
+
+=item	-v, --verbose
+
+Sets logging to verbose. By default, logging goes to a file named fetch_metagenomes.log.
 
 =back
 
