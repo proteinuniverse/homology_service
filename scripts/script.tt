@@ -5,13 +5,6 @@ use Pod::Usage;
 use Log::Message::Simple qw[:STD :CARP];
 use File::Basename;
 
-### redirect log output
-my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
-open STDERR, ">>$scriptname.log" or die "cannot open log file";
-local $Log::Message::Simple::MSG_FH     = \*STDERR;
-local $Log::Message::Simple::ERROR_FH   = \*STDERR;
-local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
-
 my $help = 0;
 my $verbose = 1;
 my ($in, $out, %skip, $skip_file);
@@ -36,6 +29,13 @@ pod2usage(-exitstatus => 0,
           -noperldoc => 1,
          ) if $help;
 
+
+### redirect log output
+my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
+open STDERR, ">>$scriptname.log" or die "cannot open log file";
+local $Log::Message::Simple::MSG_FH     = \*STDERR;
+local $Log::Message::Simple::ERROR_FH   = \*STDERR;
+local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
 
 ### set up i/o handles
 my ($ih, $oh);
@@ -115,7 +115,7 @@ The output file, default is STDOUT
 
 =item	-v, --verbose
 
-Sets logging to verbose. By default, logging goes to STDERR.
+Sets logging to verbose. By default, logging goes to a file named [% kb_script %].log.
 
 =item	-s, --skip
 
