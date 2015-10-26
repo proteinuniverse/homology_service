@@ -61,7 +61,7 @@ else {
 if ( $ih ) {while(<$ih>) {chomp; $skip{$_}++;}}
 
 for (my $x=0+$offset; $x< $num+$offset; $x++) {
-  my $json_text = download_metadata_from_mgrast(1, $x+$offset);
+  my $json_text = download_metadata_from_mgrast(1, $x);
   # log_metadata($json_text);
 
   my $json = JSON->new->allow_nonref;
@@ -93,8 +93,10 @@ sub download {
   my $cmd  = 'curl -s -o ' . $outfile . ' \'';
   $cmd    .= $url;
   $cmd    .= '\'';
+  msg("executing cmd: $cmd", $verbose);
   my $ret = `$cmd`;
   if ($?) {die "$?\ncould not execute command $cmd";}
+  msg("done executing cmd: $cmd", $verbose);
   return $ret
 
 }
@@ -119,7 +121,9 @@ sub download_metadata_from_mgrast {
   $cmd   .= '&order=name&verbosity=metadata&sequence_type=WGS&offset=';
   $cmd   .= $offset;
   $cmd   .= '\'';
+  msg("executing cmd: $cmd", $verbose);
   my $ret = `$cmd`;
+  msg("done executing cmd: $cmd", $verbose);
   if ($?) {die "$?\ncould not execute command $cmd";}
 
   return $ret
@@ -132,8 +136,10 @@ sub download_reads_from_mgrast {
   $cmd    .= 'download/';
   $cmd    .= $metagenome_id;
   $cmd    .= '\'';
+  msg("executing cmd: $cmd", $verbose);
   my $json_text = `$cmd`;
   if ($?) {die "$?\ncould not execute command $cmd";}
+  msg("done executing cmd: $cmd", $verbose);
   return $json_text;
 }
 
@@ -145,28 +151,27 @@ sub log_metadata {
 
   my $json = JSON->new->allow_nonref;
   my $perl_scalar = $json->decode( $json_text );
-  print "metagenome", "\t";
-  print $perl_scalar->{'data'}->[0]->{'id'}, "\t";
-  print scalar(@{$perl_scalar->{'data'}}), "\t";
-  print $perl_scalar->{'data'}->[0]->{'project'}->[0], "\t";
-  print $perl_scalar->{'data'}->[0]->{'sequence_type'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'metadata'}->{'library'}->{'data'}->{'investigation_type'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'metadata'}->{'library'}->{'data'}->{'seq_meth'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'pipeline_parameters'}->{'assembled'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'metadata'}->{'project'}->{'name'}, "\n";
+  msg("metagenome" . "\t" .
+      $perl_scalar->{'data'}->[0]->{'id'} . "\t" .
+      scalar(@{$perl_scalar->{'data'}}) . "\t" .
+      $perl_scalar->{'data'}->[0]->{'project'}->[0] . "\t" .
+      $perl_scalar->{'data'}->[0]->{'sequence_type'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'metadata'}->{'library'}->{'data'}->{'investigation_type'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'metadata'}->{'library'}->{'data'}->{'seq_meth'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'pipeline_parameters'}->{'assembled'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'metadata'}->{'project'}->{'name'}, $verbose);
 }
 # this sub prints information in the download data structure
 sub log_download {
   my $json_text = shift or die "must provide json_text";
   my $json = JSON->new->allow_nonref;
   my $perl_scalar = $json->decode( $json_text );
-  print "download", "\t";
-
-  print $perl_scalar->{'data'}->[0]->{'id'}, "\t";
-  print scalar(@{$perl_scalar->{'data'}}), "\t";
-  print $perl_scalar->{'data'}->[0]->{'data_type'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'file_format'}, "\t";
-  print $perl_scalar->{'data'}->[0]->{'url'}, "\n";
+  msg("download" . "\t" .
+      $perl_scalar->{'data'}->[0]->{'id'} . "\t" .
+      scalar(@{$perl_scalar->{'data'}}) . "\t" .
+      $perl_scalar->{'data'}->[0]->{'data_type'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'file_format'} . "\t" .
+      $perl_scalar->{'data'}->[0]->{'url'}, $verbose);
 
 }
 
