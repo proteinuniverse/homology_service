@@ -3,13 +3,7 @@ use Getopt::Long;
 use JSON;
 use Pod::Usage;
 use Log::Message::Simple qw[:STD :CARP];
-
-### redirect log output
-my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
-open STDERR, ">>$scriptname.log" or die "cannot open log file";
-local $Log::Message::Simple::MSG_FH     = \*STDERR;
-local $Log::Message::Simple::ERROR_FH   = \*STDERR;
-local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
+use File::Basename;
 
 my $help = 0;
 my $verbose = 1;
@@ -30,12 +24,18 @@ GetOptions(
         'verbose'  => \$verbose,
 ) or pod2usage(0);
 
-
 pod2usage(-exitstatus => 0,
           -output => \*STDOUT,
           -verbose => 2,
           -noperldoc => 1,
          ) if $help;
+
+### redirect log output
+my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
+open STDERR, ">>$scriptname.log" or die "cannot open log file";
+local $Log::Message::Simple::MSG_FH     = \*STDERR;
+local $Log::Message::Simple::ERROR_FH   = \*STDERR;
+local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
 
 
 # do a little validation on the parameters
@@ -58,9 +58,6 @@ else {
 
 
 # main logic
-use strict;
-use JSON;
-
 if ( $ih ) {while(<$ih>) {chomp; $skip{$_}++;}}
 
 for (my $x=0+$offset; $x< $num+$offset; $x++) {
