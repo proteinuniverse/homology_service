@@ -78,12 +78,15 @@ if ($ih) {
     open FLEXMD5, $filename or die "can not open $filename";
     open LOC, ">$outfile" or die "can not open $outfile";
     while( <FLEXMD5> ) {
-
+      chomp;
       my ($md5, $defline, $aaseq) = split /\t/;
       my $h = Parsers::parse_glimmer_protein($defline);
 
+      my $idx = ( $h->{left} + $h->{right} )/ 2;
+      my $len = $h->{right} - $h->{left} + 1;
       print LOC ( $metagenome_id, "\t", $h->{cid}, "\t", $md5, "\t", 
-                  $h->{left}, "\t", $h->{right}, "\t", $h->{strand}, "\n");
+                  $h->{left}, "\t", $h->{right}, "\t", $h->{strand}, "\t",
+		  "$idx:$len", "\n");
 
     }
     close FLEXMD5;
