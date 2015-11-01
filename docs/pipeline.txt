@@ -1,36 +1,70 @@
-source = none
-filter = fetch_metagenome
-filter parameter = records file of records to skip
-sink = tab delimited record : metagenome_id [tab] read_file_name
+=pod
 
-source = tab delimited record : metagenome_id [tab] read_file_name
-filter = assemble_metagenome
-filter parameter = assembler template
-filter parameter = records file of records to skip
-sink = tab delimited records : metagenome_id [tab] assembly_file_name
+=head1	Pipeline Description
 
-source = tab delimited records : metagenome_id [tab] assembly_file_name
-filter = filter_contigs
-filter parameter = coverage
-filter parameter = length
-filter paramter = records file of records to skip
-sink = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
+=over
 
-source = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
-filter = call_genes
-filter paramter = gene caller template
-sink = tab delimited records : metagenome_id [tab] gene_predictions_file_name
+=item	Fetch metagenomes
 
-source = tab delimited records : metagenome_id [tab] gene_predictions_file_name
-filter = flex_md5
-sink = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+Downlads metagenomes from MG-RAST
+
+ source = none
+ filter = fetch_metagenome
+ filter parameter = records file of records to skip
+ filter parameter = offset to start downloading from, name sorted order
+ filter parameter = number of records to download
+ sink = tab delimited record : metagenome_id [tab] read_file_name
+
+=item	Assemble metagenomes
+
+ source = tab delimited record : metagenome_id [tab] read_file_name
+ filter = assemble_metagenome
+ filter parameter = assembler
+ filter parameter = records file of records to skip
+ sink = tab delimited records : metagenome_id [tab] assembly_file_name
+
+=item	Filter contigs
+
+Filter contigs does desired quality control on the contigs as well
+as print contig statistics.
+
+Output includes a tab delimited file containing the contig_id, contig_length
+and contig_coverage.
+
+Filter specification:
+ source = tab delimited records : metagenome_id [tab] assembly_file_name
+ filter = filter_contigs
+ filter parameter = coverage
+ filter parameter = length
+ filter paramter = records file of records to skip
+ sink = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
 
 
-source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
-filter = find_location
-sink = tab delimited records : metagenome_id [tab] contig_id [tab] flexmd5 [tab] start [tab] stop [tab]
+=item	Call genes
 
+ source = tab delimted records : metagenome_id [tab] filtered_assembly_file_name
+ filter = call_genes
+ filter paramter = gene caller template
+ sink = tab delimited records : metagenome_id [tab] gene_predictions_file_name
 
-source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
-filter assign_function
-sink = tab delimited records : flexmd5 [tab] function
+=item	Compute MD5 signatures
+
+ source = tab delimited records : metagenome_id [tab] gene_predictions_file_name
+ filter = flex_md5
+ sink = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+
+=item	Find gene locations in contigs
+
+ source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+ filter = find_location
+ sink = tab delimited records : metagenome_id [tab] contig_id [tab] flexmd5 [tab] start [tab] stop [tab]
+
+=item	Assign gene functions
+
+ source = tab delimted records : metagenome_id [tab] gene_predictions_md5_file_name
+ filter assign_function
+ sink = tab delimited records : flexmd5 [tab] function
+
+=back
+
+=cut
