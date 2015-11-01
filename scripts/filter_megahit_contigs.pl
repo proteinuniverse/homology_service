@@ -1,14 +1,22 @@
 use strict;
+use warnings;
 use Getopt::Long; 
 use JSON;
 use Pod::Usage;
+use Log::Message::Simple qw[:STD :CARP];
 use File::Basename;
+use Parsers;
 
-my $help = 0;
-my ($in, $out, $coverage, $length, $skip);
+my ($in, $out, $skip);
 my %skip_ids;
-my $PRINT = 0;
 
+### set default values
+my $help = 0;
+my $verbose = 1;
+my $coverage = 1;
+my $length = 1;
+my $assembler = 'megahit';
+my $PRINT = 0;
 
 GetOptions(
 	'h'	=> \$help,
@@ -17,11 +25,14 @@ GetOptions(
 	'help'	=> \$help,
 	'input=s'  => \$in,
 	'output=s' => \$out,
+        'v'        => \$verbose,
+        'verbose'  => \$verbose,
 	'c=f'    => \$coverage,
   	'coverage=f' => \$coverage,
 	'l=i'  => \$length,
 	'length=i' => \$length,
-
+	'a=s'	=> \$assembler,
+	'assembler=s' => \$assembler,
 ) or pod2usage(0);
 
 pod2usage(-exitstatus => 0,
@@ -30,6 +41,14 @@ pod2usage(-exitstatus => 0,
           -noperldoc => 1,
          ) if $help;
 
+### redirect log output
+my ($scriptname,$scriptpath,$scriptsuffix) = fileparse($0, ".pl");
+open STDERR, ">>$scriptname.log" or die "cannot open log file";
+local $Log::Message::Simple::MSG_FH     = \*STDERR;
+local $Log::Message::Simple::ERROR_FH   = \*STDERR;
+local $Log::Message::Simple::DEBUG_FH   = \*STDERR;
+
+### set up i/o handles
 my ($ih, $oh);
 if ($in) {
     open $ih, "<", $in or die "Cannot open input file $in: $!";
@@ -57,39 +76,41 @@ my @suffixlist = qw(.fa .fna .fasta);
 
 # main logic
 while(<$ih>){
+  # for this metagenome
   my ($metagenome_id, $contigs_file) = split /\s+/;
-  if ( $skip_ids{$metagenome_id} >= 1) { print "skipping $metagenome_id\n"; next; }
-
+  if ( $skip_ids{$metagenome_id} >= 1) { msg ("skipping $metagenome_id in skip file", $verbose); next; }
+  if (-s $contigs_file == 0) { msg ("skipping $metagenome_id size is 0", $verbose); next; }
   open CONTIGS, $contigs_file or die "can not open contigs file: $contigs_file";
 
+  # prepare filtered output file
   my($name,$path,$suffix) = fileparse($contigs_file,@suffixlist);
   my $filtered_file_name = $path . $name;
   $filtered_file_name .= '.' . $coverage . 'x' if $coverage;
   $filtered_file_name .= '.' . $length . 'bp' if $length;
   $filtered_file_name .= $suffix;
-  open FILTERED, ">$filtered_file_name "or die "can not open filtered file";
 
+  # prepare the summary output file
+  my $summary_file = $path . $name;
+  $summary_file .= ".sum";
+
+  open FILTERED, ">$filtered_file_name "or die "can not open filtered file";
+  open SUMMARY,  ">$summary_file" or die "can not open summary file: $summary_file";
+
+  # examine each contig
+  msg("exminging contigs in $contigs_file", $verbose);
   while(<CONTIGS>) { 
     my $cov = 0;
     my $id;
     my $len = 0;
 
     if (/>/) {
-      # look at the id
-      $id = $1 if />(\S+)/;
-      $id = $1 if />(\S+)_length/;
-      die "could not parse id" unless $id;
-      # look at coverage
-      $cov = $1 if /multi=([\d\.]+)/;
-      $cov = $1 if /multi_([\d\.]+)/;
-      die "could not parse coverage" unless $cov;
-      # look at length
-      $len = $1 if /len=(\d+)/;
-      $len = $1 if /length_(\d+)/;
-      die "could not parse length" unless $len;
-
-      if ($cov >= $coverage && $len >= $length) {
+      my $href = Parsers::parse_assembly($_, $assembler);
+      msg("parse keys: " . join(", ", keys %$href), $verbose);
+      msg("parse values: " . join(", ", values %$href), $verbose);
+      msg("filter values: coverage=$coverage and length=$length", $verbose);
+      if ($href->{coverage} >= $coverage && $href->{length} >= $length) {
         $PRINT = 1;
+        print SUMMARY "$metagenome_id\t$href->{contig_id}\t$assembler\t$href->{length}\t$href->{coverage}\n";
       }
       else {
         $PRINT = 0;
@@ -97,13 +118,15 @@ while(<$ih>){
     }
 
     if ($PRINT == 1) {
-      print STDERR "problem" unless $_;
+      carp "nothing on the standard line" unless $_;
       print FILTERED $_;
-      print STDERR "$id\t$len\t$cov\n" if />/;
     }
   } # end while contigs
+
   close FILTERED;
+  close SUMMARY;
   print $oh "$metagenome_id\t$filtered_file_name\n";
+
 } # end while input handle
 
 
