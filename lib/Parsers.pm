@@ -1,4 +1,37 @@
 package Parsers;
+use strict;
+use Log::Message::Simple;
+my $verbose = 1;
+
+
+
+### Adapters
+sub parse_gene_calls {
+  my ($defline, $gene_caller) = @_;
+  
+  if ($gene_caller =~ /prodigal/i) {
+    return parse_glimmer_protein($defline);
+  }
+
+  else {
+    die "undefined gene caller: $gene_caller";
+  }
+}
+
+sub parse_assembly {
+  my ($defline, $assembler) = @_;
+
+  if ($assembler =~ /megahit/i) {
+    return parse_megahit_assembly($_);
+  }
+
+  else {
+    die "undefined assembler: $assembler";
+  }
+}
+
+
+### Actual Parsers
 
 # Protein Translations
 
@@ -45,6 +78,30 @@ sub parse_glimmer_protein {
 	   strand => $strand, gene_info => $gene_info};
 
 } 
+
+sub parse_megahit_assembly {
+  my $defline = shift or die "no defline provided";
+  my($id, $cov, $len);
+
+  # look at the id
+  $id = $1 if />(\S+)/;
+  $id = $1 if />(\S+)_length/;
+  die "could not parse id" unless $id;
+  # look at coverage
+  $cov = $1 if /multi=([\d\.]+)/;
+  $cov = $1 if /multi_([\d\.]+)/;
+  die "could not parse coverage" unless $cov;
+  # look at length
+  $len = $1 if /len=(\d+)/;
+  $len = $1 if /length_(\d+)/;
+  die "could not parse length" unless $len;
+
+  msg( "id = $id, coverage = $cov, length = $len", $verbose);
+
+  return {'contig_id' => $id, 'coverage' => $cov, 'length' => $len};
+}
+
+
 
 
 1; 
