@@ -5,9 +5,11 @@ use Pod::Usage;
 use Log::Message::Simple qw[:STD :CARP];
 use File::Basename;
 
+my ($in, $out, %skip, $skip_file);
+
+### set default values
 my $help = 0;
 my $verbose = 1;
-my ($in, $out, %skip, $skip_file);
 
 GetOptions(
 	'h'	=> \$help,
