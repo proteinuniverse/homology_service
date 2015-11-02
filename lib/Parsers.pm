@@ -96,8 +96,6 @@ sub parse_megahit_assembly {
   $len = $1 if /length_(\d+)/;
   die "could not parse length" unless $len;
 
-  msg( "id = $id, coverage = $cov, length = $len", $verbose);
-
   return {'contig_id' => $id, 'coverage' => $cov, 'length' => $len};
 }
 
