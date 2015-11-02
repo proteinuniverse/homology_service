@@ -105,9 +105,6 @@ while(<$ih>){
 
     if (/>/) {
       my $href = Parsers::parse_assembly($_, $assembler);
-      msg("parse keys: " . join(", ", keys %$href), $verbose);
-      msg("parse values: " . join(", ", values %$href), $verbose);
-      msg("filter values: coverage=$coverage and length=$length", $verbose);
       if ($href->{coverage} >= $coverage && $href->{length} >= $length) {
         $PRINT = 1;
         print SUMMARY "$metagenome_id\t$href->{contig_id}\t$assembler\t$href->{length}\t$href->{coverage}\n";
