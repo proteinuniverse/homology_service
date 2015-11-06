@@ -106,8 +106,8 @@ sub verify_download {
   my $expected_md5 = shift or die "must prvide expected md5";
 
   my ($observed_md5, $filename)  =  split /\s+/, `md5sum $filename`; 
-  msg ( "expected: $expected_md5", $verbose);
-  msg ( "observed: $observed_md5", $verbose);
+  msg ( "expected $filename: $expected_md5", $verbose);
+  msg ( "observed $filename: $observed_md5", $verbose);
   return 1 if $observed_md5 eq $expected_md5;
   return 0 if $observed_md5 ne $expected_md5;
 }
