@@ -129,7 +129,7 @@ if ( $ih ) {
 
     # print the last record
     if($seq_name && $seq) {
-      $seq_name   =~ s/^\s*\>\s+|\s+$//;
+      $seq_name   =~ s/\s+$//;
       $seq =~ s/\*$//;
       $seq_md5  = hex2alpha(md5_hex($seq));
       print MD5FILE ("$seq_md5\t$seq_name\t$seq\n");
