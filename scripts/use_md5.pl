@@ -49,8 +49,9 @@ my ($ih, $oh);
 if ($in) {
     open $ih, "<", $in or die "Cannot open input file $in: $!";
 }
-elsif (! (-t STDIN))  {
-    $ih = \*STDIN;
+else  {
+    die "MUST SPECIFY -i <filename>!  NEW WORLD ORDER!!!\n";
+    #$ih = \*STDIN;
 }
 if ($out) {
     open $oh, ">", $out or die "Cannot open output file $out: $!";
@@ -113,7 +114,7 @@ if ( $ih ) {
           $seq =~ s/\*$//;
           # $seq_md5  = hex2alpha(md5_hex($seq));
           $seq_md5  = md5_hex($seq);
-          print MD5FILE ("$seq_md5\t$seq_name\t$seq\n");
+          print MD5FILE ("$seq_md5\t$in\t$seq_name\t$seq\n");
         }
       
         # grab new seqname and reset sequence
