@@ -54,6 +54,7 @@ else  {
     die "MUST SPECIFY -i <filename>!  NEW WORLD ORDER!!!\n";
     #$ih = \*STDIN;
 }
+
 if ($out) {
     open $oh, ">", $out or die "Cannot open output file $out: $!";
 }
@@ -91,6 +92,9 @@ if ( $ih ) {
     if ( -s $filename == 0 ) { print "skipping $filename with size 0\n"; next; }
     die "$filename not readable" unless (-e $filename and -r $filename);
 
+    # NOTE THIS IS UGLY FIX ME
+    my $sourcename=$filename;
+
     # parse input file name into it's parts
     my @suffixlist = qw (.fa .fna .fasta .faa);
     my ($name,$path,$suffix) = fileparse($filename,@suffixlist);	
@@ -111,11 +115,11 @@ if ( $ih ) {
 
         # print previous record
     	if($seq_name && $seq) {
-          $seq_name   =~ s/^\s*\>\s+|\s+$//;
+          $seq_name   =~ s/\s+$//;
           $seq =~ s/\*$//;
           # $seq_md5  = hex2alpha(md5_hex($seq));
           $seq_md5  = md5_hex($seq);
-          print MD5FILE ("$seq_md5\t$in\t$seq_name\t$seq\n");
+          print MD5FILE ("$seq_md5\t$sourcename\t$seq_name\t$seq\n");
         }
       
         # grab new seqname and reset sequence
@@ -202,4 +206,3 @@ Thomas Brettin
 =cut
 
 1;
-
